@@ -3,137 +3,125 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MURDER MYSTERY</title>
+    <title>PROTOCOL: BORDERLAND</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Special+Elite&display=swap');
-        :root { --red: #ff0000; --bg: #050505; --paper: #e0e0e0; }
+        :root { --red: #ff0000; --bg: #050505; --gold: #ffd700; }
         
-        body, html { 
-            margin: 0; padding: 0; width: 100%; height: 100%; 
-            background: var(--bg); color: #e0e0e0; 
-            font-family: 'Special Elite', monospace;
-            overflow: hidden; touch-action: manipulation;
-        }
+        body, html { margin: 0; padding: 0; width: 100%; height: 100%; background: var(--bg); color: white; font-family: 'Special Elite', monospace; overflow: hidden; }
 
-        #camera-bg { position: fixed; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; z-index: 0; filter: brightness(0.1); }
+        #camera-bg { position: fixed; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; z-index: 0; filter: brightness(0.2); }
 
-        .screen { 
-            display: none; position: relative; z-index: 10; height: 100vh; width: 100%; 
-            flex-direction: column; align-items: center; justify-content: center; padding: 20px; box-sizing: border-box; 
-            background: rgba(10,10,10,0.92); backdrop-filter: blur(8px);
-        }
-        .active { display: flex; animation: fadeIn 0.5s; }
-
+        .screen { display: none; position: relative; z-index: 10; height: 100vh; width: 100%; flex-direction: column; align-items: center; justify-content: center; padding: 20px; box-sizing: border-box; background: rgba(0,0,0,0.85); backdrop-filter: blur(8px); }
+        .active { display: flex; animation: fadeIn 0.5s ease; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-        .btn { 
-            background: rgba(40,40,40,0.8); border: 1px solid rgba(255,255,255,0.3); color: white; 
-            padding: 18px; font-size: 1.1rem; cursor: pointer; width: 90%;
-            margin: 10px 0; text-transform: uppercase; letter-spacing: 2px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.5);
-        }
-        .btn:active { background: var(--red); color: black; box-shadow: 0 0 20px var(--red); }
+        .btn { background: rgba(40,40,40,0.8); border: 1px solid rgba(255,255,255,0.3); color: white; padding: 18px; font-size: 1rem; cursor: pointer; width: 90%; margin: 8px 0; text-transform: uppercase; letter-spacing: 2px; }
+        .btn:active { background: var(--red); color: black; }
+        .btn:disabled { opacity: 0.3; pointer-events: none; }
 
-        /* ID RED GLOWING CIRCLE */
-        .id-circle {
-            width: 200px; height: 200px; border-radius: 50%;
-            border: 5px solid var(--red); object-fit: cover;
-            box-shadow: 0 0 25px var(--red), inset 0 0 20px var(--red);
-            animation: pulseRed 1.5s infinite;
-        }
+        /* Identification Pulse */
+        .id-circle { width: 180px; height: 180px; border-radius: 50%; border: 5px solid var(--red); object-fit: cover; box-shadow: 0 0 20px var(--red); animation: pulseRed 1.5s infinite; margin-bottom: 15px; }
+        @keyframes pulseRed { 0% { box-shadow: 0 0 0px var(--red); } 50% { box-shadow: 0 0 30px var(--red); } 100% { box-shadow: 0 0 0px var(--red); } }
 
-        @keyframes pulseRed {
-            0% { transform: scale(1); box-shadow: 0 0 15px var(--red); }
-            50% { transform: scale(1.03); box-shadow: 0 0 35px var(--red); }
-            100% { transform: scale(1); box-shadow: 0 0 15px var(--red); }
-        }
-
-        .lobby-list { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; width: 100%; margin-top:15px; }
+        .lobby-list { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; width: 100%; overflow-y: auto; padding: 10px; }
         .vote-card { border: 1px solid #444; background: #111; padding: 5px; text-align: center; position: relative; }
-        .vote-card img { width: 100%; height: 80px; object-fit: cover; }
-        
-        /* CHIPS SA VOTING */
-        .vote-chips { display: flex; flex-wrap: wrap; gap: 2px; justify-content: center; min-height: 25px; margin-top: 5px; }
-        .v-chip { width: 20px; height: 20px; border-radius: 50%; border: 1.5px solid white; object-fit: cover; }
+        .vote-card img { width: 100%; height: 75px; object-fit: cover; border: 1px solid #333; }
+        .v-chip { width: 20px; height: 20px; border-radius: 50%; border: 1px solid white; margin: 1px; }
 
-        #fade-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: black; z-index: 9999; pointer-events: none; opacity: 0; transition: opacity 0.5s; }
+        /* Cooldown Bar */
+        .cd-container { width: 90%; background: #222; height: 8px; margin-top: -5px; margin-bottom: 10px; display: none; }
+        .cd-bar { height: 100%; background: var(--red); width: 100%; transition: linear; }
 
-        .winner-pair { display: flex; align-items: center; justify-content: center; gap: 20px; margin-bottom: 20px; }
-        .winner-pair img { width: 130px; height: 130px; border: 4px solid white; object-fit: cover; }
-        .winner-pair .murderer-pic { border-color: var(--red); animation: pulseRed 1s infinite; }
+        /* Tablet Modal */
+        #tablet-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 1000; padding: 20px; box-sizing: border-box; }
+        .tablet-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .status-dead { filter: grayscale(1) brightness(0.5); border: 2px solid red !important; }
+
+        #fade-black { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: black; z-index: 9999; pointer-events: none; opacity: 0; transition: opacity 0.8s; }
     </style>
 </head>
 <body>
 
     <video id="camera-bg" autoplay playsinline></video>
-    <div id="fade-overlay"></div>
+    <div id="fade-black"></div>
 
     <div id="menu-screen" class="screen active">
-        <h1 style="color:var(--red); font-size: 3rem; letter-spacing: 10px; text-shadow: 0 0 15px var(--red);">MURDER MYSTERY</h1>
+        <h1 style="color:var(--red); font-size: 3.5rem; letter-spacing: 12px; text-shadow: 0 0 15px red;">PROTOCOL</h1>
         <button class="btn" onclick="startNewGame()">New Game</button>
-        <button class="btn" style="opacity:0.5">Continue</button>
+        <button class="btn" style="opacity:0.5" onclick="location.reload()">Continue</button>
     </div>
 
     <div id="reg-screen" class="screen">
         <video id="reg-video" class="id-circle" autoplay playsinline></video>
-        <div style="margin: 10px 0;">
-            <button class="btn" style="width: auto; padding: 10px;" onclick="switchCamera()">Switch Camera</button>
+        <div style="margin-bottom: 10px;">
+            <button class="btn" style="width:auto; padding: 10px;" onclick="switchCam()">Switch Camera</button>
         </div>
-        <input type="text" id="p-name" placeholder="NAME" style="width:80%; padding:15px; margin:10px 0; background:#000; color:white; border:1px solid var(--red); font-family:inherit;">
+        <input type="text" id="p-name" placeholder="OPERATIVE NAME" style="width:85%; padding:15px; background:#000; color:white; border:1px solid var(--red); margin-bottom:10px; text-align:center;">
         <button class="btn" onclick="registerPlayer()">Identify</button>
-        <div id="lobby-list" class="lobby-list" style="max-height: 25vh; overflow-y: auto;"></div>
-        <button id="start-btn" class="btn" style="display:none; border-color:white;" onclick="finalizeLobby()">Initialize</button>
+        <div id="lobby-list" class="lobby-list" style="max-height: 25vh;"></div>
+        <button id="start-btn" class="btn" style="display:none; border-color:var(--gold);" onclick="finalizeLobby()">Initialize Protocol</button>
     </div>
 
     <div id="pass-screen" class="screen">
-        <h2 style="color:var(--red);">UR TURN:</h2>
-        <img id="pass-img" class="id-circle" style="width:160px; height:160px;">
+        <h2 style="color:var(--red); letter-spacing: 5px;">PASS PHONE TO:</h2>
+        <img id="pass-img" class="id-circle">
         <h1 id="pass-name">---</h1>
-        <button id="reveal-btn" class="btn">Open Data</button>
+        <button id="reveal-btn" class="btn">Confirm Identity</button>
     </div>
 
     <div id="role-screen" class="screen">
-        <h2 id="role-title" style="font-size:3.5rem; letter-spacing:5px;">---</h2>
-        <p>DO NOT SHOW TO OTHERS</p>
-        <button class="btn" onclick="finishRoleTurn()">Confirm & Hide</button>
+        <h1 style="font-size:1.5rem;">YOUR ROLE IS:</h1>
+        <h2 id="role-title" style="font-size:4rem; margin: 20px 0;">---</h2>
+        <button class="btn" onclick="playSfx('btn'); finishRoleTurn()">Keep Secret</button>
     </div>
 
     <div id="game-screen" class="screen">
-        <div style="position:absolute; top:20px; width:90%; display:flex; justify-content:space-between;">
-            <span id="round-label" style="color:red">R1/10</span>
-            <span id="task-progress" style="color:white">Tasks: 0/2</span>
+        <div style="width:100%; display:flex; justify-content:space-between; align-items:center;">
+            <h3 id="round-label">R1/10</h3>
+            <button class="btn" style="width:60px; margin:0;" onclick="openTablet()">📱</button>
         </div>
-        <img id="gp-img" style="width:150px; height:150px; border:3px solid white; object-fit:cover; margin-bottom:10px;">
+        <img id="gp-img" class="id-circle" style="width:140px; height:140px;">
         <h2 id="gp-name">---</h2>
+        
         <div id="action-ui" style="width:100%;">
             <button id="kill-btn" class="btn" style="color:red; border-color:red;" onclick="showTargets()">Eliminate</button>
+            <div id="cd-container" class="cd-container"><div id="cd-bar" class="cd-bar"></div></div>
+            <p id="cd-text" style="color:red; font-size:0.8rem; margin-top:-5px; display:none;">RELOADING: <span id="cd-sec">0</span>s</p>
         </div>
-        <button class="btn" onclick="doTask()">Perform Task</button>
+
+        <button class="btn" onclick="doTask()">Task (<span id="task-val">0</span>/2)</button>
         <button class="btn" style="opacity:0.4; border:none;" onclick="endTurn()">Skip</button>
     </div>
 
     <div id="vote-screen" class="screen">
-        <h2 style="font-size:1.2rem;">VOTER: <span id="voter-name" style="color:red">---</span></h2>
+        <h2 style="font-size:1.2rem;">Voter: <span id="voter-name" style="color:red">---</span></h2>
         <div id="vote-list" class="lobby-list"></div>
         <button class="btn" style="border-color:gray" onclick="recordVote(-1)">Abstain</button>
     </div>
 
     <div id="vote-summary-screen" class="screen">
-        <h2 style="color:var(--red);">VOTE RESULTS</h2>
-        <div id="summary-list" class="lobby-list" style="max-height:60vh; overflow-y:auto;"></div>
-        <button class="btn" onclick="finishVotePhase()">Next Cycle</button>
+        <h2 style="color:red; letter-spacing:5px;">VOTE TELEMETRY</h2>
+        <div id="summary-list" class="lobby-list"></div>
+        <button class="btn" onclick="finishVotePhase()">Proceed to Next Round</button>
     </div>
 
     <div id="win-screen" class="screen">
-        <h1 id="win-msg" style="text-align:center; font-size:2rem; color:white;">---</h1>
-        <div id="win-pics" class="winner-pair"></div>
-        <button class="btn" onclick="location.reload()">Restart Game</button>
+        <h1 id="win-msg" style="text-align:center; font-size:2.5rem; text-shadow:0 0 10px white;">---</h1>
+        <div id="win-pics" style="display:flex; justify-content:center; align-items:center; gap:20px; margin: 20px 0;"></div>
+        <button class="btn" onclick="location.reload()">Restart Protocol</button>
+    </div>
+
+    <div id="tablet-modal">
+        <h2 style="text-align:center; color:var(--red);">OPERATIVE STATUS</h2>
+        <div id="tablet-grid" class="tablet-grid"></div>
+        <button class="btn" onclick="closeTablet()">Close</button>
     </div>
 
     <div id="target-selector" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.95); z-index:5000; padding:20px; box-sizing:border-box;">
         <h2 style="color:red; text-align:center;">ACQUIRE TARGET</h2>
         <div id="target-btns" class="lobby-list"></div>
-        <button class="btn" onclick="document.getElementById('target-selector').style.display='none'">Cancel</button>
+        <button class="btn" onclick="document.getElementById('target-selector').style.display='none'">Abort</button>
     </div>
 
     <script>
@@ -144,53 +132,52 @@
         let votes = {};
         let sequence = [];
         let currentFacingMode = "user";
-        let winAudio = new Audio('win.mp3');
-        let sfxRole = new Audio('https://www.soundjay.com/buttons/sounds/button-16.mp3');
+        
+        const winSound = new Audio('win.mp3');
+        const btnSfx = new Audio('https://www.soundjay.com/buttons/sounds/button-16.mp3');
+        const roleSfx = new Audio('https://www.soundjay.com/buttons/sounds/button-3.mp3');
 
-        function speak(txt) {
-            const msg = new SpeechSynthesisUtterance(txt);
-            msg.rate = 0.8; msg.pitch = 0.7;
-            window.speechSynthesis.speak(msg);
-        }
+        function playSfx(type) { if(type==='btn') btnSfx.play(); else roleSfx.play(); }
 
         function transition(id) {
-            const overlay = document.getElementById('fade-overlay');
-            overlay.style.opacity = '1';
-            setTimeout(() => {
-                document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-                document.getElementById(id).classList.add('active');
-                overlay.style.opacity = '0';
-            }, 400);
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+        }
+
+        function speak(txt) {
+            const u = new SpeechSynthesisUtterance(txt);
+            u.rate = 0.8; u.pitch = 0.6;
+            window.speechSynthesis.speak(u);
         }
 
         async function startNewGame() {
             transition('reg-screen');
-            initCamera();
+            startCamera();
         }
 
-        async function initCamera() {
+        async function startCamera() {
             if(window.stream) window.stream.getTracks().forEach(t => t.stop());
-            const constraints = { video: { facingMode: currentFacingMode } };
-            window.stream = await navigator.mediaDevices.getUserMedia(constraints);
-            document.getElementById('reg-video').srcObject = window.stream;
-            document.getElementById('camera-bg').srcObject = window.stream;
+            const s = await navigator.mediaDevices.getUserMedia({ video: { facingMode: currentFacingMode }});
+            window.stream = s;
+            document.getElementById('reg-video').srcObject = s;
+            document.getElementById('camera-bg').srcObject = s;
         }
 
-        function switchCamera() {
-            currentFacingMode = (currentFacingMode === "user") ? "environment" : "user";
-            initCamera();
+        function switchCam() {
+            currentFacingMode = currentFacingMode === "user" ? "environment" : "user";
+            startCamera();
         }
 
         function registerPlayer() {
             const name = document.getElementById('p-name').value;
             if(!name) return;
-            const canvas = document.createElement('canvas'); canvas.width = 400; canvas.height = 400;
-            canvas.getContext('2d').drawImage(document.getElementById('reg-video'), 0, 0, 400, 400);
+            const canvas = document.createElement('canvas'); canvas.width = 300; canvas.height = 300;
+            canvas.getContext('2d').drawImage(document.getElementById('reg-video'), 0, 0, 300, 300);
             const img = canvas.toDataURL();
-            players.push({ name, img, role: '', alive: true, tasks: 0 });
-            document.getElementById('lobby-list').innerHTML += `<div class="vote-card"><img src="${img}" style="border-radius:50%"><p>${name}</p></div>`;
-            speak("Operative " + name + " identified.");
+            players.push({ name, img, role: '', alive: true, tasks: 0, cd: 0 });
+            document.getElementById('lobby-list').innerHTML += `<div class="vote-card"><img src="${img}"><p style="font-size:0.6rem;">${name}</p></div>`;
             document.getElementById('p-name').value = "";
+            speak("Operative " + name + " identified.");
             if(players.length >= 3) document.getElementById('start-btn').style.display = 'block';
         }
 
@@ -198,8 +185,7 @@
             let roles = ['Murderer', 'Sheriff']; while(roles.length < players.length) roles.push('Innocent');
             roles = roles.sort(() => Math.random() - 0.5);
             players.forEach((p, i) => p.role = roles[i]);
-            currentIdx = 0;
-            startRolePass();
+            currentIdx = 0; startRolePass();
         }
 
         function startRolePass() {
@@ -207,12 +193,12 @@
             document.getElementById('pass-name').innerText = players[currentIdx].name;
             document.getElementById('pass-img').src = players[currentIdx].img;
             document.getElementById('reveal-btn').onclick = () => {
+                playSfx('role');
                 transition('role-screen');
-                sfxRole.play();
                 const p = players[currentIdx];
-                const title = document.getElementById('role-title');
-                title.innerText = p.role.toUpperCase();
-                title.style.color = p.role === 'Murderer' ? 'red' : (p.role === 'Sheriff' ? 'gold' : 'white');
+                const rt = document.getElementById('role-title');
+                rt.innerText = p.role.toUpperCase();
+                rt.style.color = p.role === 'Murderer' ? 'red' : (p.role === 'Sheriff' ? 'gold' : 'white');
             };
         }
 
@@ -223,10 +209,9 @@
         }
 
         function startRound() {
-            if(round > 10) { checkWin(true); return; }
-            sequence = players.map((_, i) => i).filter(i => players[i].alive);
-            currentIdx = 0;
-            playTurn();
+            if(round > 10) { showWin("PROTOCOL FAILED - TIME EXPIRED", players[0], players[1]); return; }
+            sequence = players.map((_, i) => i).filter(i => players[i].alive).sort(() => Math.random() - 0.5);
+            currentIdx = 0; playTurn();
         }
 
         function playTurn() {
@@ -235,23 +220,43 @@
             document.getElementById('pass-name').innerText = p.name;
             document.getElementById('pass-img').src = p.img;
             document.getElementById('reveal-btn').onclick = () => {
+                playSfx('btn');
                 transition('game-screen');
                 document.getElementById('round-label').innerText = `R${round}/10`;
                 document.getElementById('gp-name').innerText = p.name;
                 document.getElementById('gp-img').src = p.img;
-                document.getElementById('task-progress').innerText = `Tasks: ${p.tasks}/2`;
-                document.getElementById('kill-btn').style.display = (p.role === 'Innocent') ? 'none' : 'block';
+                document.getElementById('task-val').innerText = p.tasks;
+                
+                const kBtn = document.getElementById('kill-btn');
+                if(p.role === 'Innocent') kBtn.style.display = 'none';
+                else {
+                    kBtn.style.display = 'block';
+                    kBtn.innerText = p.role === 'Murderer' ? 'Eliminate' : 'Execute';
+                    updateCDUI(p);
+                }
             };
         }
 
+        function updateCDUI(p) {
+            const kBtn = document.getElementById('kill-btn');
+            const cdC = document.getElementById('cd-container');
+            const cdT = document.getElementById('cd-text');
+            if(p.cd > 0) {
+                kBtn.disabled = true; cdC.style.display = 'block'; cdT.style.display = 'block';
+                document.getElementById('cd-sec').innerText = p.cd;
+                document.getElementById('cd-bar').style.width = (p.cd / (p.role==='Murderer'?20:30)*100) + "%";
+            } else { kBtn.disabled = false; cdC.style.display = 'none'; cdT.style.display = 'none'; }
+        }
+
         function doTask() {
+            playSfx('btn');
             const p = players[sequence[currentIdx]];
-            p.tasks++; 
-            document.getElementById('task-progress').innerText = `Tasks: ${p.tasks}/2`;
-            if(p.tasks >= 2) { speak("Task complete."); setTimeout(endTurn, 800); }
+            p.tasks++; document.getElementById('task-val').innerText = p.tasks;
+            if(p.tasks >= 2) setTimeout(endTurn, 500);
         }
 
         function showTargets() {
+            playSfx('btn');
             document.getElementById('target-selector').style.display = 'block';
             const btns = document.getElementById('target-btns');
             btns.innerHTML = "";
@@ -264,13 +269,23 @@
 
         function kill(idx) {
             const shooter = players[sequence[currentIdx]];
-            if(shooter.role === 'Murderer') players[idx].alive = false;
-            else if(shooter.role === 'Sheriff') {
+            if(shooter.role === 'Murderer') {
+                players[idx].alive = false; shooter.cd = 20;
+            } else {
                 if(players[idx].role === 'Murderer') players[idx].alive = false;
                 else shooter.alive = false;
+                shooter.cd = 30;
             }
+            startCDTimer(sequence[currentIdx]);
             document.getElementById('target-selector').style.display = 'none';
             endTurn();
+        }
+
+        function startCDTimer(idx) {
+            let itv = setInterval(() => {
+                if(players[idx].cd > 0) players[idx].cd--;
+                else clearInterval(itv);
+            }, 1000);
         }
 
         function endTurn() {
@@ -281,7 +296,7 @@
         }
 
         function checkVoting() {
-            if(checkWin()) return;
+            if(checkWinCondition()) return;
             votingIdx = 0; votes = {};
             players.forEach((p,i) => { if(p.alive) votes[i] = []; });
             votes[-1] = [];
@@ -289,8 +304,8 @@
         }
 
         function startVotingTurn() {
-            const aliveIdxs = players.map((_, i) => i).filter(i => players[i].alive);
-            const voter = players[aliveIdxs[votingIdx]];
+            const alive = players.map((_, i) => i).filter(i => players[i].alive);
+            const voter = players[alive[votingIdx]];
             transition('pass-screen');
             document.getElementById('pass-name').innerText = voter.name;
             document.getElementById('pass-img').src = voter.img;
@@ -300,17 +315,17 @@
                 const list = document.getElementById('vote-list');
                 list.innerHTML = "";
                 players.forEach((p, i) => {
-                    if(p.alive) list.innerHTML += `<div class="vote-card" onclick="recordVote(${i})"><img src="${p.img}"><p>${p.name}</p></div>`;
+                    if(p.alive) list.innerHTML += `<div class="vote-card" onclick="recordVote(${i})"><img src="${p.img}"><div class="vote-chips" id="chips-${i}"></div><p>${p.name}</p></div>`;
                 });
             };
         }
 
-        function recordVote(targetIdx) {
-            const aliveIdxs = players.map((_, i) => i).filter(i => players[i].alive);
-            const voter = players[aliveIdxs[votingIdx]];
-            votes[targetIdx].push(voter.img);
+        function recordVote(tIdx) {
+            const alive = players.map((_, i) => i).filter(i => players[i].alive);
+            const voter = players[alive[votingIdx]];
+            votes[tIdx].push(voter.img);
             votingIdx++;
-            if(votingIdx < aliveIdxs.length) startVotingTurn();
+            if(votingIdx < alive.length) startVotingTurn();
             else showSummary();
         }
 
@@ -319,64 +334,58 @@
             const list = document.getElementById('summary-list');
             list.innerHTML = "";
             let max = 0; let victim = -1; let tie = false;
-
             players.forEach((p, i) => {
                 if(p.alive) {
                     const count = votes[i].length;
-                    let chips = ''; 
-                    votes[i].forEach(imgSrc => chips += `<img src="${imgSrc}" class="v-chip">`);
+                    let chips = ''; votes[i].forEach(img => chips += `<img src="${img}" class="v-chip">`);
                     list.innerHTML += `<div class="vote-card"><img src="${p.img}"><p>${p.name}</p><div class="vote-chips">${chips}</div></div>`;
                     if(count > max) { max = count; victim = i; tie = false; }
                     else if(count === max && max > 0) tie = true;
                 }
             });
-
-            if(!tie && victim !== -1) {
-                players[victim].alive = false;
-                speak(players[victim].name + " was exiled.");
-            } else {
-                speak("No consensus reached.");
-            }
+            if(!tie && victim !== -1) players[victim].alive = false;
         }
 
         function finishVotePhase() {
-            if(!checkWin()) { round++; startRound(); }
+            if(!checkWinCondition()) { 
+                document.getElementById('fade-black').style.opacity = '1';
+                setTimeout(() => {
+                    round++; startRound();
+                    document.getElementById('fade-black').style.opacity = '0';
+                }, 800);
+            }
         }
 
-        function checkWin(timeOut = false) {
+        function checkWinCondition() {
             const alive = players.filter(p => p.alive);
-            const murderer = players.find(p => p.role === 'Murderer');
-            const sheriff = players.find(p => p.role === 'Sheriff');
+            const m = players.find(p => p.role === 'Murderer');
+            const s = players.find(p => p.role === 'Sheriff');
 
-            if(!murderer.alive) { 
-                showWin("HERO SAVED THE DAY / INNOCENTS WIN", sheriff, murderer); 
-                return true; 
-            }
-            if(alive.length <= 2 || timeOut) { 
-                showWin("MURDERER WINS", murderer, sheriff); 
-                return true; 
-            }
+            if(!m.alive) { showWin("HERO SAVE THE DAY", s, m); return true; }
+            if(alive.length <= 2) { showWin("MURDERER WINS", m, s); return true; }
             return false;
         }
 
         function showWin(msg, winner, loser) {
             transition('win-screen');
-            winAudio.play();
-            speak(msg);
             document.getElementById('win-msg').innerText = msg;
-            
-            const winBox = document.getElementById('win-pics');
-            winBox.innerHTML = `
-                <div style="text-align:center">
-                    <img src="${winner.img}" class="${winner.role==='Murderer' ? 'murderer-pic' : ''}" style="width:130px; height:130px; border-radius:10px;">
-                    <p>${winner.name}<br>(${winner.role})</p>
-                </div>
-                <div style="text-align:center">
-                    <img src="${loser.img}" style="width:130px; height:130px; border-radius:10px; filter:grayscale(1); opacity:0.6;">
-                    <p>${loser.name}<br>(${loser.role})</p>
-                </div>
+            speak(msg); winSound.play();
+            const container = document.getElementById('win-pics');
+            container.innerHTML = `
+                <div style="text-align:center;"><img src="${winner.img}" class="id-circle" style="border-color:gold;"><p>WINNER</p></div>
+                <div style="text-align:center;"><img src="${loser.img}" class="id-circle" style="border-color:red; filter:grayscale(1); animation:pulseRed 0.5s infinite;"><p>LOSER</p></div>
             `;
         }
+
+        function openTablet() {
+            const grid = document.getElementById('tablet-grid');
+            grid.innerHTML = "";
+            players.forEach(p => {
+                grid.innerHTML += `<div class="vote-card ${p.alive?'':'status-dead'}"><img src="${p.img}"><p>${p.name}</p></div>`;
+            });
+            document.getElementById('tablet-modal').style.display = 'block';
+        }
+        function closeTablet() { document.getElementById('tablet-modal').style.display = 'none'; }
     </script>
 </body>
 </html>
