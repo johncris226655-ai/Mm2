@@ -6,63 +6,42 @@
     <title>PROTOCOL: BORDERLAND</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Special+Elite&family=Courier+Prime:wght@400;700&display=swap');
-        :root { 
-            --red: #bc0000; 
-            --blue: #005bc4; 
-            --gold: #FFD700;
-            --bg: #0a0a0a; 
-            --paper: #c4c4c4; 
-        }
+        :root { --red: #bc0000; --blue: #005bc4; --gold: #FFD700; --bg: #0a0a0a; --paper: #c4c4c4; }
         
         body, html { margin: 0; padding: 0; width: 100%; height: 100%; background: var(--bg); color: var(--paper); font-family: 'Courier Prime', monospace; overflow: hidden; }
 
-        /* Scanning Visuals */
-        body::before { content: ""; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.1) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.03)); z-index: 2; background-size: 100% 3px, 3px 100%; pointer-events: none; }
+        #camera-bg { position: fixed; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; z-index: 0; filter: brightness(0.15) contrast(1.2); }
 
-        #camera-bg { position: fixed; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; z-index: 0; filter: brightness(0.2) contrast(1.2) grayscale(0.4); }
+        .screen { display: none; position: relative; z-index: 10; height: 100vh; width: 100%; flex-direction: column; align-items: center; justify-content: center; padding: 20px; box-sizing: border-box; background: rgba(5,5,5,0.9); }
+        .active { display: flex; animation: flicker 0.1s infinite; }
+        @keyframes flicker { 0% { opacity: 0.98; } 100% { opacity: 1; } }
 
-        .screen { display: none; position: relative; z-index: 10; height: 100vh; width: 100%; flex-direction: column; align-items: center; justify-content: center; padding: 20px; box-sizing: border-box; background: rgba(5,5,5,0.9); backdrop-filter: blur(8px); }
-        .active { display: flex; animation: flicker 0.15s infinite; }
-        @keyframes flicker { 0% { opacity: 0.97; } 50% { opacity: 1; } 100% { opacity: 0.97; } }
-
-        /* Buttons & Dynamic Glows */
-        .btn { 
-            background: transparent; border: 1px solid var(--paper); color: var(--paper); 
-            padding: 15px; font-size: 0.9rem; cursor: pointer; width: 90%; margin: 8px 0; 
-            text-transform: uppercase; letter-spacing: 3px; font-family: 'Special Elite'; 
-            position: relative; transition: transform 0.1s, box-shadow 0.1s;
-        }
-        .btn:active { transform: scale(0.96); background: var(--paper); color: black; }
+        .btn { background: transparent; border: 1px solid var(--paper); color: var(--paper); padding: 15px; font-size: 0.9rem; cursor: pointer; width: 90%; margin: 8px 0; text-transform: uppercase; letter-spacing: 3px; font-family: 'Special Elite'; transition: transform 0.1s; }
+        .btn:active { transform: scale(0.95); background: var(--paper); color: black; }
         
-        .btn-murderer { border-color: var(--red) !important; color: var(--red) !important; animation: glowRed 1.5s infinite; }
-        .btn-sheriff { border-color: var(--gold) !important; color: var(--gold) !important; animation: glowGold 1.5s infinite; }
-        
-        @keyframes glowRed { 0%, 100% { box-shadow: 0 0 5px var(--red); } 50% { box-shadow: 0 0 20px var(--red); } }
-        @keyframes glowGold { 0%, 100% { box-shadow: 0 0 5px var(--gold); } 50% { box-shadow: 0 0 20px var(--gold); } }
+        .btn-murderer { border-color: var(--red) !important; color: var(--red) !important; box-shadow: 0 0 15px var(--red); }
+        .btn-sheriff { border-color: var(--gold) !important; color: var(--gold) !important; box-shadow: 0 0 15px var(--gold); }
 
         .doc-header { border-bottom: 2px solid var(--paper); width: 90%; margin-bottom: 20px; padding-bottom: 5px; text-transform: uppercase; font-weight: bold; font-size: 0.8rem; letter-spacing: 5px; }
         
-        .id-frame { width: 160px; height: 160px; border: 2px solid var(--paper); padding: 5px; position: relative; margin-bottom: 15px; background: #000; overflow: hidden; }
-        .id-frame img { width: 100%; height: 100%; object-fit: cover; filter: grayscale(1) contrast(1.3); }
+        .id-frame { width: 150px; height: 150px; border: 2px solid var(--paper); padding: 5px; background: #000; }
+        .id-frame img { width: 100%; height: 100%; object-fit: cover; filter: grayscale(1); }
         
-        .win-frame-red { border: 4px solid var(--red); box-shadow: 0 0 30px var(--red); }
-        .win-frame-gold { border: 4px solid var(--gold); box-shadow: 0 0 30px var(--gold); }
+        /* Side-by-Side Ending */
+        .showdown-container { display: flex; gap: 20px; justify-content: center; align-items: center; width: 100%; margin: 20px 0; }
+        .player-card { text-align: center; width: 140px; }
+        .win-glow-red { border-color: var(--red) !important; box-shadow: 0 0 30px var(--red); animation: pulseRed 1s infinite; }
+        .win-glow-gold { border-color: var(--gold) !important; box-shadow: 0 0 30px var(--gold); animation: pulseGold 1s infinite; }
+        
+        @keyframes pulseRed { 0% { box-shadow: 0 0 10px var(--red); } 50% { box-shadow: 0 0 40px var(--red); } 100% { box-shadow: 0 0 10px var(--red); } }
+        @keyframes pulseGold { 0% { box-shadow: 0 0 10px var(--gold); } 50% { box-shadow: 0 0 40px var(--gold); } 100% { box-shadow: 0 0 10px var(--gold); } }
 
-        .lobby-list { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; width: 100%; max-height: 35vh; overflow-y: auto; }
+        .lobby-list { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; width: 100%; }
         .vote-card { border: 1px solid #333; background: #000; padding: 5px; text-align: center; }
         .vote-card img { width: 100%; height: 60px; object-fit: cover; }
 
-        #notify-toast { 
-            position: fixed; top: 15%; left: 50%; transform: translateX(-50%); 
-            background: var(--gold); color: black; padding: 12px 25px; 
-            font-family: 'Special Elite'; z-index: 10000; display: none;
-            border: 2px solid white; box-shadow: 0 0 40px var(--gold);
-            animation: pulse 0.5s infinite;
-        }
-        @keyframes pulse { 0% { transform: translateX(-50%) scale(1); } 50% { transform: translateX(-50%) scale(1.05); } 100% { transform: translateX(-50%) scale(1); } }
-
-        .status-dead { border: 1px solid var(--red) !important; opacity: 0.3; pointer-events: none; filter: sepia(1) saturate(5); }
-        #fade-black { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: black; z-index: 9999; pointer-events: none; opacity: 0; transition: opacity 0.6s; }
+        #notify-toast { position: fixed; top: 10%; left: 50%; transform: translateX(-50%); background: var(--gold); color: black; padding: 10px 20px; font-family: 'Special Elite'; z-index: 10000; display: none; border: 2px solid white; }
+        #fade-black { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: black; z-index: 9999; pointer-events: none; opacity: 0; transition: opacity 0.5s; }
     </style>
 </head>
 <body>
@@ -72,78 +51,64 @@
     <div id="notify-toast">WEAPON ACQUIRED</div>
 
     <div id="menu-screen" class="screen active">
-        <div class="doc-header">Classified / Protocol</div>
-        <h1 style="font-size: 2.3rem; letter-spacing: 12px; margin: 10px 0; text-align: center;">BORDERLAND</h1>
+        <div class="doc-header">Protocol: Classified</div>
+        <h1 style="font-size: 2.2rem; letter-spacing: 10px;">BORDERLAND</h1>
         <button class="btn" onclick="initAudio(); startNewGame()">Initiate Sequence</button>
     </div>
 
     <div id="reg-screen" class="screen">
-        <div class="doc-header">Operative Enrollment</div>
-        <video id="reg-video" autoplay playsinline style="width:160px; height:160px; border:1px solid var(--paper); object-fit:cover; margin-bottom:15px;"></video>
-        <input type="text" id="p-name" placeholder="ENTRY NAME" style="width:85%; padding:12px; background:transparent; color:var(--paper); border:1px solid var(--paper); margin-bottom:10px; text-align:center; font-family:'Courier Prime'; text-transform: uppercase;">
-        <button class="btn" onclick="playSfx('click'); registerPlayer()">Capture Data</button>
-        <div id="lobby-list" class="lobby-list"></div>
-        <button id="start-btn" class="btn" style="display:none; border-color:var(--red);" onclick="playSfx('click'); finalizeLobby()">Execute Protocol</button>
+        <div class="doc-header">Enrollment</div>
+        <video id="reg-video" autoplay playsinline style="width:150px; height:150px; border:1px solid var(--paper); object-fit:cover; margin-bottom:10px;"></video>
+        <input type="text" id="p-name" placeholder="ENTRY NAME" style="width:80%; padding:10px; background:transparent; color:var(--paper); border:1px solid var(--paper); margin-bottom:10px; text-align:center; font-family:'Courier Prime';">
+        <button class="btn" onclick="playSfx('click'); registerPlayer()">Capture</button>
+        <div id="lobby-list" class="lobby-list" style="max-height: 25vh; overflow-y: auto;"></div>
+        <button id="start-btn" class="btn" style="display:none; border-color:var(--red);" onclick="finalizeLobby()">Execute</button>
     </div>
 
     <div id="pass-screen" class="screen">
-        <div class="doc-header">Confidential Handover</div>
-        <h1 id="pass-name" style="letter-spacing: 5px; margin: 15px 0;">---</h1>
+        <div class="doc-header">Secure Handover</div>
+        <h1 id="pass-name" style="letter-spacing: 5px;">---</h1>
         <div class="id-frame"><img id="pass-img"></div>
-        <button id="reveal-btn" class="btn">Access Dossier</button>
+        <button id="reveal-btn" class="btn">Access Data</button>
     </div>
 
     <div id="role-screen" class="screen">
-        <div class="doc-header">Assignment Briefing</div>
-        <h1 id="role-title" style="font-size:3rem; letter-spacing:8px; margin: 15px 0;">---</h1>
-        <p id="role-desc" style="font-size:0.8rem; text-align:center; padding:0 20px; min-height: 60px;"></p>
+        <div class="doc-header">Briefing</div>
+        <h1 id="role-title" style="font-size:2.5rem; letter-spacing:5px;">---</h1>
+        <p id="role-desc" style="font-size:0.7rem; text-align:center; padding:0 30px;"></p>
         <button class="btn" onclick="playSfx('click'); finishRoleTurn()">Acknowledge</button>
     </div>
 
     <div id="game-screen" class="screen">
-        <div style="width:100%; display:flex; justify-content:space-between; border-bottom:1px solid #333; margin-bottom:10px;">
+        <div style="width:100%; display:flex; justify-content:space-between; border-bottom:1px solid #333;">
             <p id="round-label">PHASE 01</p>
-            <p onclick="openTablet()" style="cursor:pointer; color:var(--gold)">[DATA_LOG]</p>
+            <p onclick="openTablet()" style="cursor:pointer;">[DATA_LOG]</p>
         </div>
-        <div class="id-frame" style="width:110px; height:110px;"><img id="gp-img"></div>
-        <h2 id="gp-name" style="margin:5px 0;">---</h2>
-        
+        <div class="id-frame" style="width:100px; height:100px; margin-top:20px;"><img id="gp-img"></div>
+        <h2 id="gp-name">---</h2>
         <div id="action-ui" style="width:100%;">
             <button id="kill-btn" class="btn" onclick="playSfx('click'); showTargets()"></button>
         </div>
-
-        <button class="btn" onclick="playSfx('click'); doTask()">Fulfill Contract (<span id="task-val">0</span>/2)</button>
-        <button id="skip-btn" class="btn" style="opacity:0.4; border:none;" onclick="playSfx('click'); endTurn()">Skip Turn</button>
+        <button class="btn" onclick="playSfx('click'); doTask()">Contract (<span id="task-val">0</span>/2)</button>
+        <button class="btn" style="opacity:0.3" onclick="endTurn()">Skip</button>
     </div>
 
     <div id="vote-screen" class="screen">
-        <div class="doc-header">Ballot Phase</div>
-        <p style="font-size:0.7rem">VOTER: <span id="voter-name" style="color:var(--red)">---</span></p>
+        <div class="doc-header">Ballot</div>
+        <p>VOTER: <span id="voter-name" style="color:var(--red)">---</span></p>
         <div id="vote-list" class="lobby-list"></div>
         <button class="btn" style="opacity:0.5" onclick="recordVote(-1)">Abstain</button>
     </div>
 
-    <div id="vote-summary-screen" class="screen">
-        <div class="doc-header">Election Telemetry</div>
-        <div id="summary-list" class="lobby-list"></div>
-        <button class="btn" onclick="playSfx('click'); finishVotePhase()">Initialize Next Phase</button>
-    </div>
-
     <div id="win-screen" class="screen">
-        <div class="doc-header">Protocol Final</div>
-        <h1 id="win-msg" style="text-align:center; font-size:1.8rem;">---</h1>
-        <div id="win-pics" style="width:100%; overflow-y:auto; margin: 10px 0;"></div>
-        <button class="btn" onclick="location.reload()">Reset Sequence</button>
-    </div>
-
-    <div id="tablet-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.96); z-index:10000; padding:20px; box-sizing:border-box;">
-        <div class="doc-header">Telemetry Status</div>
-        <div id="tablet-grid" class="lobby-list" style="grid-template-columns: 1fr 1fr;"></div>
-        <button class="btn" onclick="document.getElementById('tablet-modal').style.display='none'">Resume</button>
+        <div class="doc-header">Final telemetry</div>
+        <h1 id="win-msg" style="text-align:center; font-size:1.5rem;">---</h1>
+        <div id="showdown" class="showdown-container"></div>
+        <button class="btn" onclick="location.reload()">Reset</button>
     </div>
 
     <div id="target-selector" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.98); z-index:5000; padding:20px; box-sizing:border-box;">
-        <div class="doc-header">Select Target</div>
+        <div class="doc-header">Eliminate Target</div>
         <div id="target-btns" class="lobby-list"></div>
         <button class="btn" onclick="document.getElementById('target-selector').style.display='none'">Abort</button>
     </div>
@@ -155,25 +120,15 @@
         let votingIdx = 0;
         let votes = {};
         let sequence = [];
-        
-        // --- AUDIO ENGINE ---
+
         const sfx = {
             click: new Audio('https://www.soundjay.com/buttons/sounds/button-37.mp3'),
-            gun: new Audio('https://www.soundjay.com/mechanical/sounds/gun-cock-1.mp3'),
             win: new Audio('https://cdn.discordapp.com/attachments/1489990746575736923/1493153771990286436/win.mp3?ex=69ddef50&is=69dc9dd0&hm=7ae48bcf531f795e0f0e63d695c857c2e3a053f9b5dc208d09c6fabda2f9f05b&')
         };
 
-        function initAudio() {
-            // Unlocks audio for mobile browsers
-            Object.values(sfx).forEach(a => { a.play(); a.pause(); a.currentTime = 0; });
-        }
+        function initAudio() { Object.values(sfx).forEach(a => { a.play(); a.pause(); }); }
+        function playSfx(k) { sfx[k].currentTime = 0; sfx[k].play().catch(()=>{}); }
 
-        function playSfx(key) {
-            sfx[key].currentTime = 0;
-            sfx[key].play().catch(e => {});
-        }
-
-        // --- CORE LOGIC ---
         function transition(id) {
             document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
             document.getElementById(id).classList.add('active');
@@ -192,7 +147,7 @@
             const canvas = document.createElement('canvas'); canvas.width = 300; canvas.height = 300;
             canvas.getContext('2d').drawImage(document.getElementById('reg-video'), 0, 0, 300, 300);
             players.push({ name: name.toUpperCase(), img: canvas.toDataURL(), role: '', alive: true, tasks: 0 });
-            document.getElementById('lobby-list').innerHTML += `<div class="vote-card"><img src="${players[players.length-1].img}"><p style="font-size:0.5rem;">${name.toUpperCase()}</p></div>`;
+            document.getElementById('lobby-list').innerHTML += `<div class="vote-card"><img src="${players[players.length-1].img}"><p style="font-size:0.5rem">${name.toUpperCase()}</p></div>`;
             document.getElementById('p-name').value = "";
             if(players.length >= 3) document.getElementById('start-btn').style.display = 'block';
         }
@@ -210,19 +165,17 @@
             document.getElementById('pass-name').innerText = p.name;
             document.getElementById('pass-img').src = p.img;
             document.getElementById('reveal-btn').onclick = () => {
-                playSfx('click');
                 transition('role-screen');
                 const t = document.getElementById('role-title');
                 t.innerText = p.role.toUpperCase();
                 t.style.color = p.role === 'Murderer' ? 'var(--red)' : (p.role === 'Sheriff' ? 'var(--gold)' : 'white');
-                document.getElementById('role-desc').innerText = p.role === 'Murderer' ? "ELIMINATE EVERYONE. REMAIN UNDETECTED." : (p.role === 'Sheriff' ? "HUNT THE MURDERER. ACCURACY IS DEADLY." : "COMPLETE TASKS. VOTE OUT THE THREAT.");
+                document.getElementById('role-desc').innerText = p.role === 'Murderer' ? "ELIMINATE ALL. DO NOT GET CAUGHT." : (p.role === 'Sheriff' ? "IDENTIFY AND SHOOT THE MURDERER." : "DO TASKS. SURVIVE.");
             };
         }
 
         function finishRoleTurn() {
             currentIdx++;
-            if(currentIdx < players.length) startRolePass();
-            else { currentIdx = 0; startRound(); }
+            if(currentIdx < players.length) startRolePass(); else startRound();
         }
 
         function startRound() {
@@ -231,24 +184,20 @@
         }
 
         function playTurn() {
+            if (currentIdx >= sequence.length) { checkVoting(); return; }
             const p = players[sequence[currentIdx]];
             transition('pass-screen');
             document.getElementById('pass-name').innerText = p.name;
             document.getElementById('pass-img').src = p.img;
             document.getElementById('reveal-btn').onclick = () => {
-                playSfx('click');
                 transition('game-screen');
                 const kBtn = document.getElementById('kill-btn');
-                document.getElementById('round-label').innerText = "PHASE 0" + round;
                 document.getElementById('gp-name').innerText = p.name;
                 document.getElementById('gp-img').src = p.img;
                 document.getElementById('task-val').innerText = p.tasks;
-
-                if(p.role === 'Murderer') {
-                    kBtn.style.display = 'block'; kBtn.innerText = "ELIMINATE TARGET"; kBtn.className = "btn btn-murderer";
-                } else if(p.role === 'Sheriff') {
-                    kBtn.style.display = 'block'; kBtn.innerText = "NEUTRALIZE THREAT"; kBtn.className = "btn btn-sheriff";
-                } else { kBtn.style.display = 'none'; }
+                if(p.role === 'Murderer') { kBtn.style.display = 'block'; kBtn.innerText = "KILL TARGET"; kBtn.className = "btn btn-murderer"; }
+                else if(p.role === 'Sheriff') { kBtn.style.display = 'block'; kBtn.innerText = "SHOOT TARGET"; kBtn.className = "btn btn-sheriff"; }
+                else { kBtn.style.display = 'none'; }
             };
         }
 
@@ -262,16 +211,15 @@
             document.getElementById('target-selector').style.display = 'block';
             const btns = document.getElementById('target-btns'); btns.innerHTML = "";
             players.forEach((p, i) => {
-                if(p.alive && i !== sequence[currentIdx]) 
-                    btns.innerHTML += `<div class="vote-card" onclick="kill(${i})"><img src="${p.img}"><p style="font-size:0.6rem">${p.name}</p></div>`;
+                if(p.alive && i !== sequence[currentIdx]) btns.innerHTML += `<div class="vote-card" onclick="kill(${i})"><img src="${p.img}"><p style="font-size:0.5rem">${p.name}</p></div>`;
             });
         }
 
         function kill(idx) {
             const shooter = players[sequence[currentIdx]];
-            if(shooter.role === 'Murderer') { players[idx].alive = false; } 
-            else if(shooter.role === 'Sheriff') {
-                if(players[idx].role === 'Murderer') { players[idx].alive = false; }
+            if(shooter.role === 'Murderer') { players[idx].alive = false; }
+            else {
+                if(players[idx].role === 'Murderer') players[idx].alive = false;
                 else { shooter.alive = false; transferGun(); }
             }
             document.getElementById('target-selector').style.display = 'none';
@@ -283,17 +231,14 @@
             if(candidates.length > 0) {
                 const lucky = candidates[Math.floor(Math.random() * candidates.length)];
                 lucky.role = 'Sheriff';
-                playSfx('gun');
-                const toast = document.getElementById('notify-toast');
-                toast.style.display = 'block';
-                setTimeout(() => toast.style.display = 'none', 3000);
+                const t = document.getElementById('notify-toast'); t.style.display = 'block';
+                setTimeout(() => t.style.display = 'none', 3000);
             }
         }
 
         function endTurn() {
             players[sequence[currentIdx]].tasks = 0;
-            currentIdx++;
-            if(currentIdx < sequence.length) playTurn(); else checkVoting();
+            currentIdx++; playTurn();
         }
 
         function checkVoting() {
@@ -307,12 +252,12 @@
 
         function startVotingTurn() {
             const alive = players.map((_, i) => i).filter(i => players[i].alive);
+            if(votingIdx >= alive.length) { applyVotes(); return; }
             const voter = players[alive[votingIdx]];
             transition('pass-screen');
             document.getElementById('pass-name').innerText = voter.name;
             document.getElementById('pass-img').src = voter.img;
             document.getElementById('reveal-btn').onclick = () => {
-                playSfx('click');
                 transition('vote-screen');
                 document.getElementById('voter-name').innerText = voter.name;
                 const list = document.getElementById('vote-list'); list.innerHTML = "";
@@ -323,72 +268,52 @@
         function recordVote(tIdx) {
             const alive = players.map((_, i) => i).filter(i => players[i].alive);
             votes[tIdx].push(players[alive[votingIdx]].img);
-            votingIdx++;
-            if(votingIdx < alive.length) startVotingTurn(); else showSummary();
+            votingIdx++; startVotingTurn();
         }
 
-        function showSummary() {
-            transition('vote-summary-screen');
-            const list = document.getElementById('summary-list'); list.innerHTML = "";
+        function applyVotes() {
             let max = 0, victim = -1, tie = false;
             players.forEach((p, i) => {
                 if(p.alive) {
-                    const count = votes[i].length;
-                    let chips = ''; votes[i].forEach(img => chips += `<img src="${img}" style="width:18px;height:18px;border-radius:50%;border:1px solid white;margin:1px;">`);
-                    list.innerHTML += `<div class="vote-card"><img src="${p.img}"><p style="font-size:0.5rem">${p.name}</p><div>${chips}</div></div>`;
-                    if(count > max) { max = count; victim = i; tie = false; }
-                    else if(count === max && max > 0) tie = true;
+                    const c = votes[i].length;
+                    if(c > max) { max = c; victim = i; tie = false; }
+                    else if(c === max && max > 0) tie = true;
                 }
             });
             if(!tie && victim !== -1) { 
                 if(players[victim].role === 'Sheriff') transferGun();
                 players[victim].alive = false; 
             }
-        }
-
-        function finishVotePhase() {
-            if(!checkWin()) { 
-                document.getElementById('fade-black').style.opacity = '1';
-                setTimeout(() => { round++; startRound(); document.getElementById('fade-black').style.opacity = '0'; }, 600);
-            }
+            if(!checkWin()) { round++; startRound(); }
         }
 
         function checkWin() {
             const alive = players.filter(p => p.alive);
-            const murderer = players.find(p => p.role === 'Murderer');
-            if(!murderer.alive) { showWin("INNOCENTS (WINS) SECURED THE BORDER", 'blue'); return true; }
-            if(alive.length <= 2) { showWin("MURDERER WINS", 'red'); return true; }
+            const m = players.find(p => p.role === 'Murderer');
+            const s = players.find(p => p.role === 'Sheriff') || {name: "VACANT", img: ""};
+            if(!m.alive) { showWin("INNOCENT VICTORY", m, s, 'blue'); return true; }
+            if(alive.length <= 2) { showWin("MURDERER VICTORY", m, s, 'red'); return true; }
             return false;
         }
 
-        function showWin(msg, color) {
+        function showWin(msg, murderer, sheriff, color) {
             transition('win-screen');
             playSfx('win');
-            const msgEl = document.getElementById('win-msg');
-            msgEl.innerText = msg; msgEl.style.color = color === 'red' ? 'var(--red)' : 'var(--blue)';
-            
-            const container = document.getElementById('win-pics'); container.innerHTML = "";
-            players.forEach(p => {
-                const border = p.role === 'Murderer' ? 'win-frame-red' : (p.role === 'Sheriff' ? 'win-frame-gold' : '');
-                container.innerHTML += `
-                    <div style="display:flex; align-items:center; gap:15px; margin:10px; padding:10px; background:rgba(255,255,255,0.05);">
-                        <div class="id-frame ${border}" style="width:70px; height:70px; margin:0;"><img src="${p.img}"></div>
-                        <div style="text-align:left;">
-                            <p style="margin:0; font-weight:bold; color:${p.role === 'Murderer' ? 'var(--red)' : (p.role === 'Sheriff' ? 'var(--gold)' : 'white')}">${p.role}</p>
-                            <p style="margin:0; font-size:0.8rem;">NAME: ${p.name}</p>
-                            <p style="margin:0; font-size:0.6rem; color:${p.alive?'#0f0':'#f00'}">${p.alive?'STATUS: ACTIVE':'STATUS: OFFLINE'}</p>
-                        </div>
-                    </div>
-                `;
-            });
-        }
-
-        function openTablet() {
-            const grid = document.getElementById('tablet-grid'); grid.innerHTML = "";
-            players.forEach(p => {
-                grid.innerHTML += `<div class="vote-card ${p.alive?'':'status-dead'}"><img src="${p.img}"><p style="font-size:0.5rem">${p.name}</p></div>`;
-            });
-            document.getElementById('tablet-modal').style.display = 'block';
+            document.getElementById('win-msg').innerText = msg;
+            document.getElementById('win-msg').style.color = color === 'red' ? 'var(--red)' : 'var(--blue)';
+            const container = document.getElementById('showdown');
+            container.innerHTML = `
+                <div class="player-card">
+                    <div class="id-frame ${color==='red'?'win-glow-red':''}"><img src="${murderer.img}"></div>
+                    <p style="color:var(--red); font-size:0.7rem; margin:5px 0;">MURDERER</p>
+                    <p style="font-size:0.6rem;">${murderer.name}</p>
+                </div>
+                <div class="player-card">
+                    <div class="id-frame ${color==='blue'?'win-glow-gold':''}"><img src="${sheriff.img}"></div>
+                    <p style="color:var(--gold); font-size:0.7rem; margin:5px 0;">SHERIFF</p>
+                    <p style="font-size:0.6rem;">${sheriff.name}</p>
+                </div>
+            `;
         }
     </script>
 </body>
